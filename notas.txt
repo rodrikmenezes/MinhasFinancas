@@ -1,0 +1,7 @@
+Dashboard
+- Gráfico de pizza dos gastos
+- Gráfico de barras gastos mensais (cartão / débito)
+- Balanço mensal (Receitas - Despesas) e saldo em conta corrente
+- Resumo das faturas (gráfico mensal e tabela detalhada)
+- Extrato da conta corrente (gráfico mensal e tabela detalhada)
+- Total de gastos por classificação
