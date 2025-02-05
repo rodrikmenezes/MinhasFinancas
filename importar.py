@@ -4,8 +4,8 @@ import numpy as np
 import os
 
 # Diretorio dados
-conta_corrente = 'dados//Conta Corrente'
-cartao_credito = 'dados//Cartão de Crédito'
+conta_corrente = 'Dados//Conta Corrente'
+cartao_credito = 'Dados//Cartão de Crédito'
 
 # Importar Conta Corrente
 arquivos = [arquivo for arquivo in os.listdir(conta_corrente) if arquivo.endswith('.csv')]
@@ -72,8 +72,8 @@ tabela_concatenada.loc[condicao, 'Valor'] = -tabela_concatenada.loc[condicao, 'V
 tabela_concatenada.loc[condicao, 'Receita/Despesa'] = 'Despesa'
 
 # Importar dados
-if os.path.exists('dados.xlsx'): 
-    tabela_classificado = pd.read_excel('dados.xlsx')
+if os.path.exists('Dados.xlsx'): 
+    tabela_classificado = pd.read_excel('Dados.xlsx')
     tabela_classificado['Data'] = pd.to_datetime(tabela_classificado['Data'], format='%d/%m/%Y', errors='coerce')
 else:
     tabela_classificado = pd.DataFrame(columns=['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor', 'Classificação'])
@@ -84,6 +84,9 @@ tabela_final = pd.concat([tabela_classificado, tabela_concatenada], ignore_index
     keep='first'
     ).reset_index(drop=True).sort_values(by='Data')
 
+# Resetar Índice
+tabela_final.reset_index(drop=True, inplace=True)
+
 # Tabela Classificação
 classificacao = pd.DataFrame(tabela_final['Classificação'].value_counts().reset_index())
 classificacao.columns = ['Classificação', 'Frequência']
@@ -93,12 +96,13 @@ relatorio = tabela_final.groupby(['Tipo', 'Competência', 'Receita/Despesa'])['V
 relatorio['Resultado'] = relatorio['Receita'] - relatorio['Despesa'] 
 
 # Exportar a tabela final para um arquivo Excel
-with pd.ExcelWriter('dados.xlsx') as arquivo_excel:
-    tabela_final.to_excel(arquivo_excel, sheet_name='Dados', index=False, freeze_panes=(1,0))
+with pd.ExcelWriter('Dados.xlsx') as arquivo_excel:
+    tabela_final.to_excel(arquivo_excel, sheet_name='Dados', freeze_panes=(1,0))
     classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1,0))
     relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1,0))
 
 print('FIM')
+
 
 
 
