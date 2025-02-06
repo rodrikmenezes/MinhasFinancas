@@ -63,6 +63,9 @@ tabela_concatenada['Classificação'] = 'Sem Classificação'
 # Adicionar coluna indice
 tabela_concatenada['Índice'] = range(len(tabela_concatenada))
 
+# Adicionar coluna
+############
+
 # Reordenar colunas
 tabela_concatenada = tabela_concatenada[['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor', 'Classificação']]
 
@@ -78,14 +81,14 @@ if os.path.exists('Dados.xlsx'):
 else:
     tabela_classificado = pd.DataFrame(columns=['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor', 'Classificação'])
 
+# Remove colunas vazias ou totalmente NA de cada DataFrame antes da concatenação
+tabela_classificado = tabela_classificado.dropna(axis=1, how='all')
+tabela_concatenada = tabela_concatenada.dropna(axis=1, how='all')
+
 # Remover linhas duplicadas, priorizando as linhas do arquivo Excel 
 tabela_final = pd.concat([tabela_classificado, tabela_concatenada], ignore_index=True).drop_duplicates(
-    subset=['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor', 'Classificação'],
-    keep='first'
-    ).reset_index(drop=True).sort_values(by='Data')
-
-# Resetar Índice
-tabela_final.reset_index(drop=True, inplace=True)
+    subset=['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor'],
+    keep='first').reset_index(drop=True).sort_values(by=['Competência', 'Tipo', 'Data'])
 
 # Tabela Classificação
 classificacao = pd.DataFrame(tabela_final['Classificação'].value_counts().reset_index())
@@ -95,15 +98,15 @@ classificacao.columns = ['Classificação', 'Frequência']
 relatorio = tabela_final.groupby(['Tipo', 'Competência', 'Receita/Despesa'])['Valor'].sum().unstack()
 relatorio['Resultado'] = relatorio['Receita'] - relatorio['Despesa'] 
 
-# Exportar a tabela final para um arquivo Excel
-with pd.ExcelWriter('Dados.xlsx') as arquivo_excel:
-    tabela_final.to_excel(arquivo_excel, sheet_name='Dados', freeze_panes=(1,0))
-    classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1,0))
-    relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1,0))
+# Exportar para Excel 
+with pd.ExcelWriter('Dados.xlsx', engine='xlsxwriter') as arquivo_excel:
+    
+    # Abas
+    tabela_final.to_excel(arquivo_excel, sheet_name='Dados', index=False, freeze_panes=(1, 0))
+    classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1, 0))
+    relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1, 0))
 
 print('FIM')
-
-
 
 
 
