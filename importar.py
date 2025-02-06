@@ -63,9 +63,6 @@ tabela_concatenada['Classificação'] = 'Sem Classificação'
 # Adicionar coluna indice
 tabela_concatenada['Índice'] = range(len(tabela_concatenada))
 
-# Adicionar coluna
-############
-
 # Reordenar colunas
 tabela_concatenada = tabela_concatenada[['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor', 'Classificação']]
 
@@ -90,21 +87,24 @@ tabela_final = pd.concat([tabela_classificado, tabela_concatenada], ignore_index
     subset=['Índice', 'Data', 'Competência', 'Tipo', 'Descrição', 'Receita/Despesa', 'Valor'],
     keep='first').reset_index(drop=True).sort_values(by=['Competência', 'Tipo', 'Data'])
 
+# Adicionar coluna 'Sugestão' em tabela_final
+tabela_final['Sugestão'] = False
+
 # Tabela Classificação
-classificacao = pd.DataFrame(tabela_final['Classificação'].value_counts().reset_index())
-classificacao.columns = ['Classificação', 'Frequência']
+tabela_classificacao = pd.DataFrame(tabela_final['Classificação'].value_counts().reset_index())
+tabela_classificacao.columns = ['Classificação', 'Frequência']
 
 # Tabela Relatório
-relatorio = tabela_final.groupby(['Tipo', 'Competência', 'Receita/Despesa'])['Valor'].sum().unstack()
-relatorio['Resultado'] = relatorio['Receita'] - relatorio['Despesa'] 
+tabela_relatorio = tabela_final.groupby(['Tipo', 'Competência', 'Receita/Despesa'])['Valor'].sum().unstack()
+tabela_relatorio['Resultado'] = tabela_relatorio['Receita'] - tabela_relatorio['Despesa'] 
 
 # Exportar para Excel 
 with pd.ExcelWriter('Dados.xlsx', engine='xlsxwriter') as arquivo_excel:
     
     # Abas
     tabela_final.to_excel(arquivo_excel, sheet_name='Dados', index=False, freeze_panes=(1, 0))
-    classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1, 0))
-    relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1, 0))
+    tabela_classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1, 0))
+    tabela_relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1, 0))
 
 print('FIM')
 
