@@ -60,18 +60,27 @@ try:
         # Tabela Classificação
         tabela_classificacao = pd.DataFrame(tabela_final['Classificação'].value_counts().reset_index())
         tabela_classificacao.columns = ['Classificação', 'Frequência']
+        tabela_classificacao['%'] = tabela_classificacao['Frequência'] / tabela_classificacao['Frequência'].sum() * 100
 
         # Tabela Relatório
         tabela_relatorio = tabela_final.groupby(['Tipo', 'Competência', 'Receita/Despesa'])['Valor'].sum().unstack()
         tabela_relatorio['Resultado'] = tabela_relatorio['Receita'] - tabela_relatorio['Despesa'] 
+
+        # Calcular totais por competência
+        totais = tabela_relatorio.groupby('Competência').sum()
+        totais['Tipo'] = 'Total'
+
+        # Adicionar totais à tabela_relatorio
+        totais = totais.set_index(['Tipo'], append=True).reorder_levels(['Tipo', 'Competência'])
+        tabela_relatorio = pd.concat([tabela_relatorio, totais])
 
         # Exportar para Excel 
         with pd.ExcelWriter('Dados.xlsx', engine='xlsxwriter') as arquivo_excel:
             
             # Abas
             tabela_final.to_excel(arquivo_excel, sheet_name='Dados', index=False, freeze_panes=(1, 0))
-            tabela_classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1, 0))
             tabela_relatorio.to_excel(arquivo_excel, sheet_name='Relatório', index=True, freeze_panes=(1, 0))
+            tabela_classificacao.to_excel(arquivo_excel, sheet_name='Classificação', index=False, freeze_panes=(1, 0))
             
     else:
         
